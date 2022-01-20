@@ -8,3 +8,7 @@ type Customer struct {
 	Dob     string
 	Status  string
 }
+
+type CustomerRepository interface {
+	FindAll() ([]Customer, error)
+}
