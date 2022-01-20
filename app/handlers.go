@@ -1,17 +1,17 @@
 package app
 
 import (
-	"fmt"
-	"github.com/gorilla/mux"
+	"encoding/json"
+	"github.com/Ad3bay0c/banking/service"
 	"net/http"
 )
 
-func Create(w http.ResponseWriter, req *http.Request) {
-
+type CustomerHandlers struct {
+	service service.CustomerService
+}
+func (c *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	customers, _ := c.service.GetAllCustomers()
+	json.NewEncoder(w).Encode(customers)
 }
 
-func Greet(w http.ResponseWriter, req *http.Request) {
-	params := mux.Vars(req)
-
-	fmt.Fprintf(w, "%v", params["id"])
-}
