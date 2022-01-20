@@ -11,7 +11,7 @@ func Create(w http.ResponseWriter, req *http.Request) {
 }
 
 func Greet(w http.ResponseWriter, req *http.Request) {
-    params := mux.Vars(req)
+	params := mux.Vars(req)
 
-	fmt.Fprintf(w,"%v", params["id"])
+	fmt.Fprintf(w, "%v", params["id"])
 }
