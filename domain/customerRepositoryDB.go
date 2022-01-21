@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Ad3bay0c/banking/errs"
+	"github.com/Ad3bay0c/banking/logger"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
@@ -14,12 +16,12 @@ const (
 	TABLE = "customers"
 )
 type CustomerRepositoryDb struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 func NewCustomerRepositoryDB() *CustomerRepositoryDb {
 	dns := fmt.Sprintf("host=%s port=%s user=%s password=%s  dbname=%s sslmode=disable",
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USER"), os.Getenv("DB_USER"), os.Getenv("DB_NAME"))
-	db, err := sql.Open("postgres", dns)
+	db, err := sqlx.Open("postgres", dns)
 
 
 	if err != nil {
@@ -39,31 +41,36 @@ func NewCustomerRepositoryDB() *CustomerRepositoryDb {
 		db: db,
 	}
 }
-func (c *CustomerRepositoryDb) FindAll() ([]Customer, error)  {
+func (c *CustomerRepositoryDb) FindAll(status string) ([]Customer, *errs.AppError)  {
 	var customers []Customer
-	rows, err := c.db.Query(fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s", TABLE))
-
-	if err != nil {
-		return nil, err
+	var query string
+	if status == "1" {
+		query = fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE status = $1", TABLE)
+	} else if status == "0" {
+		query = fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE status = $1", TABLE)
+	} else {
+		status = "0"
+		query = fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE status >= $1", TABLE)
 	}
-	for rows.Next() {
-		var customer Customer
-		err := rows.Scan(&customer.ID, &customer.Name, &customer.City, &customer.Zipcode, &customer.Dob, &customer.Status)
-		if err != nil {
-			return nil, err
+	//rows, err := c.db.Query(query, status)
+	err := c.db.Select(&customers, query, status)
+	if err != nil {
+		log.Print(err.Error())
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("customer not found")
+		}else {
+			return nil, errs.NewUnexpectedError("unexpected database error")
 		}
-		customers = append(customers, customer)
 	}
 	return customers, nil
 }
 
 func (c *CustomerRepositoryDb) ByID(id string) (*Customer, *errs.AppError) {
 	var customer Customer
-	row := c.db.QueryRow(fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE customer_id = $1", TABLE), id)
-
-	err := row.Scan(&customer.ID, &customer.Name, &customer.City, &customer.Zipcode, &customer.Dob, &customer.Status)
+	query := fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE customer_id = $1", TABLE)
+	err := c.db.Get(&customer, query, id)
 	if err != nil {
-		log.Printf("Error: %v", err)
+		logger.Error("Error: "+err.Error())
 		if err == sql.ErrNoRows {
 			return nil, errs.NewNotFoundError("customer not found")
 		} else {
