@@ -3,8 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/Ad3bay0c/banking/domain"
-	"github.com/Ad3bay0c/banking/service"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -21,11 +19,10 @@ func defineRoutes(router *mux.Router, ch *CustomerHandlers) {
 }
 
 
-func Start() {
+func Start(ch *CustomerHandlers) {
 	// initialize the router
 	router := mux.NewRouter()
 
-	ch := &CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDB())}
 	defineRoutes(router, ch)
 
 	PORT := fmt.Sprintf(":%s", os.Getenv("PORT"))
@@ -42,16 +39,18 @@ func Start() {
 		if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Printf(err.Error())
 		}
-	}()
-	wait := make(chan os.Signal)
+	}() // start the server
 
-	signal.Notify(wait, os.Interrupt)
+	wait := make(chan os.Signal) // create a channel to wait for a signal
+
+	signal.Notify(wait, os.Interrupt) // register the channel to be notified on an interrupt (Ctrl+C)
 	<-wait
 	log.Printf("Server shutting down...")
 
 	time.Sleep(2 * time.Second)
 	ctx, cancel := context.WithTimeout(context.Background(), 3 * time.Second)
 	defer cancel()
+	// shut down gracefully, but wait no longer than 3 seconds before halting
 	if err := s.Shutdown(ctx); err != nil {
         log.Printf(err.Error())
     }
