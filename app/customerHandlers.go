@@ -9,24 +9,32 @@ import (
 )
 
 type CustomerHandlers struct {
-	service service.CustomerService
+	Service service.CustomerService
 }
+
 func (c *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	customers, _ := c.service.GetAllCustomers()
+	customers, _ := c.Service.GetAllCustomers()
 	json.NewEncoder(w).Encode(customers)
 }
 
 func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Request)  {
 	params := mux.Vars(req)
-	customer, err := c.service.GetCustomerByID(params["customer_id"])
+	customer, err := c.Service.GetCustomerByID(params["customer_id"])
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		log.Println(err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"error": http.StatusText(http.StatusBadRequest)})
+		log.Println(err.Message)
+		WriteResponse(w, err.Code, err.Message)
 		return
 	}
 
-	json.NewEncoder(w).Encode(customer)
+	WriteResponse(w, http.StatusOK, customer)
+}
+
+func WriteResponse(w http.ResponseWriter, code int, data interface{}) {
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(code)
+    if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
+	}
 }
