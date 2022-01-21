@@ -3,6 +3,7 @@ package domain
 import (
 	"database/sql"
 	"fmt"
+	"github.com/Ad3bay0c/banking/errs"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
@@ -41,6 +42,7 @@ func NewCustomerRepositoryDB() *CustomerRepositoryDb {
 func (c *CustomerRepositoryDb) FindAll() ([]Customer, error)  {
 	var customers []Customer
 	rows, err := c.db.Query(fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s", TABLE))
+
 	if err != nil {
 		return nil, err
 	}
@@ -55,13 +57,18 @@ func (c *CustomerRepositoryDb) FindAll() ([]Customer, error)  {
 	return customers, nil
 }
 
-func (c *CustomerRepositoryDb) ByID(id string) (*Customer, error) {
+func (c *CustomerRepositoryDb) ByID(id string) (*Customer, *errs.AppError) {
 	var customer Customer
 	row := c.db.QueryRow(fmt.Sprintf("SELECT customer_id, name, city, zipcode, date_of_birth, status FROM %s WHERE customer_id = $1", TABLE), id)
 
 	err := row.Scan(&customer.ID, &customer.Name, &customer.City, &customer.Zipcode, &customer.Dob, &customer.Status)
 	if err != nil {
-        return nil, err
+		log.Printf("Error: %v", err)
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("customer not found")
+		} else {
+			return nil, errs.NewUnexpectedError("unexpected database errs")
+		}
     }
 	return &customer, nil
 }
