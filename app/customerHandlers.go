@@ -2,9 +2,9 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/Ad3bay0c/banking/logger"
 	"github.com/Ad3bay0c/banking/service"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 )
 
@@ -14,8 +14,14 @@ type CustomerHandlers struct {
 
 func (c *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	customers, _ := c.Service.GetAllCustomers()
-	json.NewEncoder(w).Encode(customers)
+	status := r.URL.Query().Get("status")
+	customers, err := c.Service.GetAllCustomers(status)
+	if err != nil {
+		logger.Error("Error: "+err.Message)
+		WriteResponse(w, err.Code, err.Message)
+		return
+	}
+	WriteResponse(w, http.StatusOK, customers)
 }
 
 func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Request)  {
@@ -23,7 +29,7 @@ func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Requ
 	customer, err := c.Service.GetCustomerByID(params["customer_id"])
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		log.Println(err.Message)
+		logger.Error(err.Message)
 		WriteResponse(w, err.Code, err.Message)
 		return
 	}
