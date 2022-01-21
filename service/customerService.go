@@ -4,6 +4,7 @@ import "github.com/Ad3bay0c/banking/domain"
 
 type CustomerService interface {
 	GetAllCustomers() ([]domain.Customer, error)
+	GetCustomerByID(id string) (*domain.Customer, error)
 }
 
 type DefaultCustomerService struct {
@@ -16,4 +17,8 @@ func (d DefaultCustomerService) GetAllCustomers() ([]domain.Customer, error)  {
 
 func NewCustomerService(repository domain.CustomerRepository) DefaultCustomerService  {
 	return DefaultCustomerService{repo: repository}
+}
+
+func (d DefaultCustomerService) GetCustomerByID(id string) (*domain.Customer, error)  {
+	return d.repo.ByID(id)
 }
