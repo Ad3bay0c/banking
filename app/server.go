@@ -17,6 +17,7 @@ import (
 // defineRoutes defines the routes for the application
 func defineRoutes(router *mux.Router, ch *CustomerHandlers) {
 	router.HandleFunc("/customers", ch.getAllCustomers).Methods(http.MethodGet)
+	router.HandleFunc("/customer/{customer_id:[0-9]+}", ch.getCustomerByID).Methods(http.MethodGet)
 }
 
 
@@ -24,7 +25,7 @@ func Start() {
 	// initialize the router
 	router := mux.NewRouter()
 
-	ch := &CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryStub())}
+	ch := &CustomerHandlers{service: service.NewCustomerService(domain.NewCustomerRepositoryDB())}
 	defineRoutes(router, ch)
 
 	PORT := fmt.Sprintf(":%s", os.Getenv("PORT"))
