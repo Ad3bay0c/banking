@@ -1,6 +1,9 @@
 package account
 
-import "github.com/Ad3bay0c/banking/errs"
+import (
+	"github.com/Ad3bay0c/banking/dto"
+	"github.com/Ad3bay0c/banking/errs"
+)
 
 type Account struct {
 	ID          string `db:"account_id"`
@@ -13,4 +16,10 @@ type Account struct {
 
 type Repository interface {
 	Save(account Account) (*Account, *errs.AppError)
+}
+
+func (acc Account) ToNewAccountResponseDto() dto.AccountResponse {
+	return dto.AccountResponse{
+		AccountID: acc.ID,
+	}
 }
