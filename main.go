@@ -9,10 +9,13 @@ import (
 )
 
 func main() {
-	log.SetFlags(log.Llongfile|log.Llongfile|log.Ldate|log.Ltime)
+	log.SetFlags(log.Llongfile | log.Llongfile | log.Ldate | log.Ltime)
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Error reading .env file\n")
 	}
-	ch := &app.CustomerHandlers{Service: service.NewCustomerService(domain.NewCustomerRepositoryDB())}
+	db := app.GetDBClient()
+	customerRepository := domain.NewCustomerRepositoryDB(db)
+	//accountRepository := account.NewRepositoryDB(db)
+	ch := &app.CustomerHandlers{Service: service.NewCustomerService(customerRepository)}
 	app.Start(ch)
 }
