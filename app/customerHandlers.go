@@ -6,6 +6,7 @@ import (
 	"github.com/Ad3bay0c/banking/service"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 type CustomerHandlers struct {
@@ -18,10 +19,11 @@ func (c *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Reques
 	customers, err := c.Service.GetAllCustomers(status)
 	if err != nil {
 		logger.Error("Error: " + err.Message)
-		WriteResponse(w, err.Code, err.Message)
+		WriteResponse(w, err.Code, nil, nil, err.Message)
 		return
 	}
-	WriteResponse(w, http.StatusOK, customers)
+
+	WriteResponse(w, http.StatusOK, customers, "Successful", nil)
 }
 
 func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Request) {
@@ -30,17 +32,23 @@ func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		logger.Error(err.Message)
-		WriteResponse(w, err.Code, err.Message)
+		WriteResponse(w, err.Code, nil, nil, err.Message)
 		return
 	}
 
-	WriteResponse(w, http.StatusOK, customer)
+	WriteResponse(w, http.StatusOK, customer, "Successful", nil)
 }
 
-func WriteResponse(w http.ResponseWriter, code int, data interface{}) {
+func WriteResponse(w http.ResponseWriter, code int, data, success, errorMessage interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	if err := json.NewEncoder(w).Encode(data); err != nil {
+	message := map[string]interface{}{
+		"error": errorMessage,
+		"data": data,
+		"message": success,
+		"date": time.Now().Format("2006-01-02 15:04:05"),
+	}
+	if err := json.NewEncoder(w).Encode(message); err != nil {
 		panic(err)
 	}
 }
