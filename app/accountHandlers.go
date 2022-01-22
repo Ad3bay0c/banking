@@ -32,3 +32,20 @@ func (a AccountHandler) newAccount(w http.ResponseWriter, req *http.Request) {
 
 	WriteResponse(w, http.StatusOK, response, "Successful", nil)
 }
+
+func (a AccountHandler) saveTransaction(w http.ResponseWriter, req *http.Request) {
+	var transaction dto.TransactionRequest
+	vars := mux.Vars(req)
+	err := json.NewDecoder(req.Body).Decode(&transaction)
+	if err != nil {
+		WriteResponse(w, http.StatusBadRequest, nil, nil, err.Error())
+		return
+	}
+	transaction.AccountID = vars["account_id"]
+	response, transactionError := a.Service.SaveTransaction(transaction)
+	if transactionError != nil {
+		WriteResponse(w, transactionError.Code, nil, nil, transactionError.Message)
+		return
+	}
+	WriteResponse(w, http.StatusOK, response, "Successful", nil)
+}
