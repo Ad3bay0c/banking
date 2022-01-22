@@ -16,8 +16,8 @@ type RepositoryDB struct {
 	client *sqlx.DB
 }
 
-func NewRepositoryDB(DBClient *sqlx.DB) *RepositoryDB {
-	return &RepositoryDB{
+func NewRepositoryDB(DBClient *sqlx.DB) RepositoryDB {
+	return RepositoryDB{
 		client: DBClient,
 	}
 }
@@ -27,7 +27,7 @@ func (accountDB RepositoryDB) Save(account Account) (*Account, *errs.AppError) {
 	res, err := accountDB.client.Exec(query, account.CustomerID, account.OpeningDate, account.AccountType, account.Amount, account.Status)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, errs.NewUnexpectedError("unexpected error")
+		return nil, errs.NewUnexpectedError("unexpected error/customer ID does not exists")
 	}
 	id, _ := res.LastInsertId()
 	account.ID = strconv.FormatInt(id, 10)
