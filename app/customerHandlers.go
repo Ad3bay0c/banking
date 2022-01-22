@@ -17,14 +17,14 @@ func (c *CustomerHandlers) getAllCustomers(w http.ResponseWriter, r *http.Reques
 	status := r.URL.Query().Get("status")
 	customers, err := c.Service.GetAllCustomers(status)
 	if err != nil {
-		logger.Error("Error: "+err.Message)
+		logger.Error("Error: " + err.Message)
 		WriteResponse(w, err.Code, err.Message)
 		return
 	}
 	WriteResponse(w, http.StatusOK, customers)
 }
 
-func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Request)  {
+func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	customer, err := c.Service.GetCustomerByID(params["customer_id"])
 	w.Header().Set("Content-Type", "application/json")
@@ -38,9 +38,9 @@ func (c *CustomerHandlers) getCustomerByID(w http.ResponseWriter, req *http.Requ
 }
 
 func WriteResponse(w http.ResponseWriter, code int, data interface{}) {
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(code)
-    if err := json.NewEncoder(w).Encode(data); err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		panic(err)
 	}
 }
