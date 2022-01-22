@@ -3,6 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/Ad3bay0c/banking/domain"
+	"github.com/Ad3bay0c/banking/domain/account"
+	"github.com/Ad3bay0c/banking/service"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"log"
@@ -13,16 +16,22 @@ import (
 )
 
 // defineRoutes defines the routes for the application
-func defineRoutes(router *mux.Router, ch *CustomerHandlers) {
+func defineRoutes(router *mux.Router, db *sqlx.DB) {
+	customerRepository := domain.NewCustomerRepositoryDB(db)
+	accountRepository := account.NewRepositoryDB(db)
+	ch := &CustomerHandlers{Service: service.NewCustomerService(customerRepository)}
+	acc := AccountHandler{service.NewAccountService(accountRepository)}
+
 	router.HandleFunc("/customers", ch.getAllCustomers).Methods(http.MethodGet)
 	router.HandleFunc("/customer/{customer_id:[0-9]+}", ch.getCustomerByID).Methods(http.MethodGet)
+	router.HandleFunc("/customer/{customer_id:[0-9]+}/account", acc.newAccount).Methods(http.MethodPost)
 }
 
-func Start(ch *CustomerHandlers) {
-	// initialize the router
+func Start() {
 	router := mux.NewRouter()
+	db := GetDBClient()
 
-	defineRoutes(router, ch)
+	defineRoutes(router, db)
 
 	PORT := fmt.Sprintf(":%s", os.Getenv("PORT"))
 	if PORT == ":" {
