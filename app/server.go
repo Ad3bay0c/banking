@@ -25,6 +25,7 @@ func defineRoutes(router *mux.Router, db *sqlx.DB) {
 	router.HandleFunc("/customers", ch.getAllCustomers).Methods(http.MethodGet)
 	router.HandleFunc("/customer/{customer_id:[0-9]+}", ch.getCustomerByID).Methods(http.MethodGet)
 	router.HandleFunc("/customer/{customer_id:[0-9]+}/account", acc.newAccount).Methods(http.MethodPost)
+	router.HandleFunc("/customer/{customer_id:[0-9]+}/account/{account_id:[0-9]+}", acc.saveTransaction).Methods(http.MethodPost)
 }
 
 func Start() {
