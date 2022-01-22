@@ -9,6 +9,7 @@ import (
 
 type AccountService interface {
 	NewAccount(dto.AccountRequest) (*dto.AccountResponse, *errs.AppError)
+	SaveTransaction(request dto.TransactionRequest) (*dto.TransactionResponse, *errs.AppError)
 }
 
 type DefaultAccountService struct {
@@ -34,7 +35,6 @@ func (d DefaultAccountService) NewAccount(req dto.AccountRequest) (*dto.AccountR
 	response := newAcc.ToNewAccountResponseDto()
 	return &response, nil
 }
-
 func NewAccountService(repo account.Repository) DefaultAccountService {
 	return DefaultAccountService{
 		repo: repo,
